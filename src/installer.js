@@ -3,59 +3,18 @@
 var _ = require('lodash')
 var asar = require('asar')
 var async = require('async')
-var child = require('child_process')
 var debug = require('debug')
 var flatpak = require('flatpak-bundler')
 var fs = require('fs-extra')
-var fsize = require('get-folder-size')
-var glob = require('glob')
 var path = require('path')
 var temp = require('temp').track()
-var wrap = require('word-wrap')
 
 var pkg = require('../package.json')
 
 var defaultLogger = debug(pkg.name)
 
 var defaultRename = function (dest, src) {
-  return path.join(dest, src);
-}
-
-/**
- * Spawn a child process.
- */
-var spawn = function (options, command, args, callback) {
-  var spawnedProcess = null
-  var error = null
-  var stderr = ''
-
-  options.logger('Executing command ' + command + ' ' + args.join(' '))
-
-  try {
-    spawnedProcess = child.spawn(command, args)
-  } catch (err) {
-    process.nextTick(function () {
-      callback(err, stderr)
-    })
-    return
-  }
-
-  spawnedProcess.stderr.on('data', function (data) {
-    stderr += data
-  })
-
-  spawnedProcess.on('error', function (err) {
-    error = error || err
-  })
-
-  spawnedProcess.on('close', function (code, signal) {
-    if (code !== 0) {
-      error = error || signal || code
-    }
-
-    callback(error && new Error('Error executing command (' + (error.message || error) + '): ' +
-      '\n' + command + ' ' + args.join(' ') + '\n' + stderr))
-  })
+  return path.join(dest, src)
 }
 
 /**
@@ -98,10 +57,9 @@ var readLicense = function (options, callback) {
  */
 var getDefaults = function (data, callback) {
   async.parallel([
-    async.apply(readMeta, data),
+    async.apply(readMeta, data)
   ], function (err, results) {
     var pkg = results[0] || {}
-    var size = results[1] || 0
 
     var defaults = {
       id: 'io.atom.electron',
@@ -125,6 +83,7 @@ var getDefaults = function (data, callback) {
       ],
 
       bin: pkg.name || 'electron',
+      icon: path.resolve(__dirname, '../resources/icon.png'),
 
       categories: [
         'GNOME',
@@ -132,7 +91,7 @@ var getDefaults = function (data, callback) {
         'Utility'
       ],
 
-      mimeType: [],
+      mimeType: []
     }
 
     callback(err, defaults)
@@ -287,7 +246,7 @@ var createContents = function (options, dir, callback) {
  * Bundle everything using `flatpak-bundler`.
  */
 var createBundle = function (options, dir, callback) {
-  var name = _.template('<%= name %>_<%= branch %>_<%= arch %>.flatpak')(options)
+  var name = _.template('<%= id %>_<%= branch %>_<%= arch %>.flatpak')(options)
   var dest = options.rename(options.dest, name)
   options.logger('Creating package at ' + dest)
 
@@ -299,14 +258,14 @@ var createBundle = function (options, dir, callback) {
     sdk: options.sdk,
     finishArgs: options.finishArgs,
     files: [
-      [dir, '/'],
+      [dir, '/']
     ],
     symlinks: [
       [path.join('/lib', options.id, options.bin), path.join('/bin', options.bin)]
     ],
   }, {
     arch: options.arch,
-    bundlePath: dest,
+    bundlePath: dest
   }, function (err) {
     callback(err, dir)
   })
