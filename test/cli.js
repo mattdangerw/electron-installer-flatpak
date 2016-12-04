@@ -34,12 +34,12 @@ describe('cli', function () {
       spawn('node src/cli.js', [
         '--src', 'test/fixtures/app-without-asar/',
         '--dest', dest,
-        '--arch', 'amd64'
+        '--arch', 'x86_64'
       ], done)
     })
 
     it('generates a `.flatpak` package', function (done) {
-      access(dest + 'com.foo.bartest_master_amd64.flatpak', done)
+      access(dest + 'com.foo.bartest_master_x86_64.flatpak', done)
     })
   })
 })
