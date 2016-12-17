@@ -146,7 +146,7 @@ var installer = require('electron-installer-flatpak')
 var options = {
   src: 'dist/app-linux-x64/',
   dest: 'dist/installers/',
-  arch: 'amd64'
+  arch: 'x86_64'
 }
 
 console.log('Creating package (this may take a while)')
